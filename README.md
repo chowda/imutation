@@ -1,24 +1,10 @@
-# README
+# Imutation
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+This app is a small service for serving images and mutating images based on params sent from the client. How might be this helpful? Or rather - what is a good use case for this service?
 
-Things you may want to cover:
+The new [picture](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture) element and srcset attribute help deal with adaptive images.  They allow multiple image urls to be specified on a single img or picutre tag.
 
-* Ruby version
 
-* System dependencies
+## FAQ
 
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+* Why does it use [insert tech here]? Because I wanted to utilizing specific technologies and this was a good use case.
