@@ -3,7 +3,7 @@ require "test_helper"
 class ImageTest < ActiveSupport::TestCase
   test "fetch existing record instead of remote" do
     image = Image.create!(url: "test")
-    assert Image.find_or_fetch("test") == image
+    assert_equal Image.find_or_fetch("test"), image
   end
 
   test "fetch remote image if it doesn't exist in DB" do
@@ -18,6 +18,6 @@ class ImageTest < ActiveSupport::TestCase
       Image.find_or_fetch("test")
     end
 
-    assert Image.find_by(url: "test") != nil
+    assert_not_equal Image.find_by(url: "test"), nil
   end
 end
