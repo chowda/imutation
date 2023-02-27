@@ -1,45 +1,40 @@
 class ImageManager
-  def initialize(url, changes={})
-    @url = url
-    @changes = changes
-    @original_image = nil
-  end
-
-  def call
-    # TODO: If this is a variant request, and the variant exists, serve it and skip
-    # trying to find the original.
-    find_or_fetch_original!
-
-    unless original?
+  def self.call(url, changes={})
+    if changes.any?
+      variant_url = url + "?" + changes.map{|k,v| "#{k}=#{v}" }.join("&")
       variant_image = Image.find_by(url: variant_url)
-      variant_image = create_variant! unless variant_image
+      unless variant_image
+        original_image = self.find_or_fetch_original!(url)
+        variant_image = self.create_variant!(original_image, changes, variant_url)
+      end
+      variant_image
+    else
+      self.find_or_fetch_original!(url)
     end
-
-    original? ? @original_image : variant_image
   end
 
   private
 
-  def find_or_fetch_original!
-    original_url = @url.split("?").first
-    @original_image = Image.find_by(url: original_url) || fetch_and_create_original!()
+  def self.find_or_fetch_original!(url)
+    original_url = url.split("?").first
+    Image.find_by(url: original_url) || self.fetch_and_create_original!(url)
   end
 
-  def fetch_and_create_original!
-    tempfile = Down.download(@url, max_size: 10 * 1024 * 1024)  # 10 MB
-    im = Image.create!(url: @url, format: tempfile.content_type, data: tempfile.read)
+  def self.fetch_and_create_original!(url)
+    tempfile = Down.download(url, max_size: 10 * 1024 * 1024)  # 10 MB
+    im = Image.create!(url: url, format: tempfile.content_type, data: tempfile.read)
     tempfile.unlink
 
     im
   end
 
-  def create_variant!
-    tf = Tempfile.new([@original_image.url, ".jpg"], encoding: 'ascii-8bit') # TODO: create tempfile with correct extension
-    tf.write(@original_image.data)
+  def self.create_variant!(original_image, changes, variant_url)
+    tf = Tempfile.new([original_image.url, ".jpg"], encoding: 'ascii-8bit') # TODO: create tempfile with correct extension
+    tf.write(original_image.data)
     variant = ImageProcessing::Vips.source(tf.path)
 
     # Apply transforms
-    @changes.each do |cmd, value|
+    changes.each do |cmd, value|
       case cmd
       when "rotate"
         variant = variant.rotate(value.to_i)
@@ -56,17 +51,9 @@ class ImageManager
     # End transforms
 
     variant_tf = variant.call
-    variant_image = Image.create!(url: variant_url, format: @original_image.format, data: variant_tf.read)
+    variant_image = Image.create!(url: variant_url, format: original_image.format, data: variant_tf.read)
     variant_tf.unlink
 
     variant_image
-  end
-
-  def original?
-    @original ||= @changes.empty?
-  end
-
-  def variant_url
-    @variant_url ||= @url + "?" + @changes.map{|k,v| "#{k}=#{v}" }.join("&")
   end
 end

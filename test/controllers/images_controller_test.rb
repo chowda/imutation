@@ -33,7 +33,7 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "#show with exception thrown" do
-    Image.stub(:find_or_fetch, Down::TimeoutError.new) do
+    ImageManager.stub(:call, Down::TimeoutError.new) do
       get image_show_url, params: {url: @url}
     end
     assert_equal "Timeout fetching image from origin", @response.body

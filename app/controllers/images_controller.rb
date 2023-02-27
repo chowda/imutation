@@ -2,7 +2,7 @@ class ImagesController < ApplicationController
   before_action :require_url, only: [:show]
 
   def show
-    image = Image.find_or_fetch(params.fetch(:url))
+    image = ImageManager.call(params[:url], permitted_params.except(:url))
     if image.is_a? Image
       send_data(image.data, type: image.format, disposition: 'inline')
     elsif image.is_a? Down::TimeoutError
@@ -20,5 +20,15 @@ class ImagesController < ApplicationController
 
   def require_url
     render_error("URL is required") if params[:url].nil?
+  end
+
+  def permitted_params
+    params.permit(
+      :url,
+      :rotate,
+      :crop,
+      :resize,
+      :quality
+    ).to_h
   end
 end
