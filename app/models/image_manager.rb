@@ -22,7 +22,7 @@ class ImageManager
 
   def self.fetch_and_create_original!(url)
     tempfile = Down.download(url, max_size: 10 * 1024 * 1024)  # 10 MB
-    im = Image.create!(url: url, format: tempfile.content_type, data: tempfile.read)
+    im = Image.create!(url: url, format: tempfile.content_type, bin: tempfile.read)
     tempfile.unlink
 
     im
@@ -30,8 +30,8 @@ class ImageManager
 
   def self.create_variant!(original_image, changes, variant_url)
     tf = Tempfile.new([original_image.url, ".jpg"], encoding: 'ascii-8bit') # TODO: create tempfile with correct extension
-    tf.write(original_image.data)
-    variant = ImageProcessing::Vips.source(tf.path)
+    tf.write(original_image.bin)
+    variant = ImageProcessing::Vips.source(tf.path) # TODO: Source should be a memory buffer - original_image.bin
 
     # Apply transforms
     changes.each do |cmd, value|
@@ -51,7 +51,7 @@ class ImageManager
     # End transforms
 
     variant_tf = variant.call
-    variant_image = Image.create!(url: variant_url, format: original_image.format, data: variant_tf.read)
+    variant_image = Image.create!(url: variant_url, format: original_image.format, bin: variant_tf.read)
     variant_tf.unlink
 
     variant_image

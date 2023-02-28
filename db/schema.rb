@@ -14,7 +14,7 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_09_030648) do
   create_table "images", force: :cascade do |t|
     t.string "url"
     t.string "format"
-    t.binary "data"
+    t.binary "bin"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["url"], name: "unique_image_url", unique: true

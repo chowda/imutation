@@ -8,7 +8,7 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "#show with legit image already in DB" do
-    Image.create!(url: @url, format: @media_type, data: @data)
+    Image.create!(url: @url, format: @media_type, bin: @data)
     get image_show_url, params: {url: @url}
 
     assert_equal @data, @response.body

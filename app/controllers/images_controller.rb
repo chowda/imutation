@@ -4,7 +4,7 @@ class ImagesController < ApplicationController
   def show
     image = ImageManager.call(params[:url], permitted_params.except(:url))
     if image.is_a? Image
-      send_data(image.data, type: image.format, disposition: 'inline')
+      send_data(image.bin, type: image.format, disposition: 'inline')
     elsif image.is_a? Down::TimeoutError
       render_error("Timeout fetching image from origin")
     else
