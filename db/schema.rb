@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[7.0].define(version: 2023_02_09_030648) do
+ActiveRecord::Schema[7.0].define(version: 2023_03_02_002020) do
   create_table "images", force: :cascade do |t|
     t.string "url"
     t.string "format"
@@ -18,6 +18,13 @@ ActiveRecord::Schema[7.0].define(version: 2023_02_09_030648) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["url"], name: "unique_image_url", unique: true
+  end
+
+  create_table "logs", force: :cascade do |t|
+    t.string "url"
+    t.string "referer"
+    t.string "host"
+    t.datetime "requested_at"
   end
 
 end

@@ -1,5 +1,6 @@
 class ImagesController < ApplicationController
   before_action :require_url, only: [:show]
+  after_action :log_request, only: [:show]
 
   def show
     image = ImageManager.call(params[:url], permitted_params.except(:url))
@@ -20,6 +21,17 @@ class ImagesController < ApplicationController
 
   def require_url
     render_error("URL is required") if params[:url].nil?
+  end
+
+  def log_request
+    LogRequestJob.perform_later(
+      {
+        url: request.url,
+        referer: request.referer,
+        host: request.host,
+        requested_at: Time.now.utc
+      }
+    )
   end
 
   def permitted_params
