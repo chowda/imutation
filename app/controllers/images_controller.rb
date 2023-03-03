@@ -13,6 +13,26 @@ class ImagesController < ApplicationController
     end
   end
 
+  def help
+    help = """
+    Available commands:
+
+    resize_to_limit - Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions.
+
+    resize_to_fit -   Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller.
+
+    resize_to_fill -  Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension.
+
+    crop -            Extracts an area from an image. The first two arguments are left & top edges of area to extract, while the last two arguments are the width & height of area to extract.
+
+    rotate -          Rotates the image by the specified angle. (1 - 359)
+
+    quality -         Sets the image quality. 1 is maximum compression, 100 is full quality. (1 - 100)
+    """
+
+    render plain: help
+  end
+
   private
 
   def render_error(message)

@@ -38,4 +38,9 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
     end
     assert_equal "Timeout fetching image from origin", @response.body
   end
+
+  test "#help" do
+    get image_help_url
+    assert_equal @response.code, '200'
+  end
 end
