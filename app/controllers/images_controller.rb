@@ -37,9 +37,11 @@ class ImagesController < ApplicationController
   def permitted_params
     params.permit(
       :url,
-      :rotate,
+      :resize_to_limit,
+      :resize_to_fit,
+      :resize_to_fill,
       :crop,
-      :resize,
+      :rotate,
       :quality
     ).to_h
   end

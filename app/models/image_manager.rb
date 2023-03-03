@@ -22,6 +22,9 @@ class ImageManager
 
   def self.fetch_and_create_original!(url)
     tempfile = Down.download(url, max_size: 10 * 1024 * 1024)  # 10 MB
+    # TODO: ImageProcessing::Vips.valid_image?(normal_image)  #=> true
+    #       ImageProcessing::Vips.valid_image?(invalid_image) #=> false
+    #       Tries to calculate the image average using sequential access, and returns true if no exception was raised, otherwise returns false.
     im = Image.create!(url: url, format: tempfile.content_type, bin: tempfile.read)
     tempfile.unlink
 
@@ -34,16 +37,23 @@ class ImageManager
     variant = ImageProcessing::Vips.source(tf.path) # TODO: Source should be a memory buffer - original_image.bin
 
     # Apply transforms
+    # TODO: Can I do them all with 1 apply? https://github.com/janko/image_processing/blob/master/doc/vips.md#apply
     changes.each do |cmd, value|
       case cmd
-      when "rotate"
+      when "resize_to_limit" # Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions.
+        h, w = value.split(",")
+        variant = variant.resize_to_limit(h.to_i, w.to_i)
+      when "resize_to_fit" # Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller.
+        h, w = value.split(",")
+        variant = variant.resize_to_fit(h.to_i, w.to_i)
+      when "resize_to_fill" # Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension.
+        h, w = value.split(",")
+        variant = variant.resize_to_fill(h.to_i, w.to_i, crop: :attention) # smart crop
+      when "crop" # Extracts an area from an image. The first two arguments are left & top edges of area to extract, while the last two arguments are the width & height of area to extract.
+        l, t, w, h = value.split(",")
+        variant = variant.crop(l.to_i, t.to_i, w.to_i, h.to_i)
+      when "rotate" # Rotates the image by the specified angle.
         variant = variant.rotate(value.to_i)
-      when "crop"
-        x, x2, y, y2 = value.split(",")
-        variant = variant.crop(x.to_i, x2.to_i, y.to_i, y2.to_i)
-      when "resize"
-        x,y = value.split(",")
-        variant = variant.resize_to_limit(x.to_i, y.to_i)
       when "quality"
         variant = variant.saver(quality: value.to_i)
       end
@@ -51,6 +61,9 @@ class ImageManager
     # End transforms
 
     variant_tf = variant.call
+    # TODO: ImageProcessing::Vips.valid_image?(normal_image)  #=> true
+    #       ImageProcessing::Vips.valid_image?(invalid_image) #=> false
+    #       Tries to calculate the image average using sequential access, and returns true if no exception was raised, otherwise returns false.
     variant_image = Image.create!(url: variant_url, format: original_image.format, bin: variant_tf.read)
     variant_tf.unlink
 
