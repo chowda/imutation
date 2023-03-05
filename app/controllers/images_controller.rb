@@ -6,8 +6,9 @@ class ImagesController < ApplicationController
     image = ImageManager.call(params[:url], permitted_params.except(:url))
     if image.is_a? Image
       send_data(image.bin, type: image.format, disposition: 'inline')
-    elsif image.is_a? Down::TimeoutError
-      render_error("Timeout fetching image from origin")
+    elsif down_errors.include? image.class
+      down_error = image.to_s.split("::").last
+      render_error(down_error)
     else
       render_error("ERROR")
     end
@@ -64,5 +65,23 @@ class ImagesController < ApplicationController
       :rotate,
       :quality
     ).to_h
+  end
+
+  # https://github.com/janko/down#exceptions
+  def down_errors
+    [
+      Down::Error,
+      Down::TooLarge,
+      Down::InvalidUrl,
+      Down::TooManyRedirects,
+      Down::NotModified,
+      Down::ResponseError,
+      Down::ClientError,
+      Down::NotFound,
+      Down::ServerError,
+      Down::ConnectionError,
+      Down::TimeoutError,
+      Down::SSLError
+    ]
   end
 end

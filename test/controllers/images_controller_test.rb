@@ -32,11 +32,18 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
     assert_equal "URL is required", @response.body
   end
 
-  test "#show with exception thrown" do
+  test "#show with TimeoutError exception thrown" do
     ImageManager.stub(:call, Down::TimeoutError.new) do
       get image_show_url, params: {url: @url}
     end
-    assert_equal "Timeout fetching image from origin", @response.body
+    assert_equal "TimeoutError", @response.body
+  end
+
+  test "#show with TooLarge exception thrown" do
+    ImageManager.stub(:call, Down::TooLarge.new) do
+      get image_show_url, params: {url: @url}
+    end
+    assert_equal "TooLarge", @response.body
   end
 
   test "#help" do
