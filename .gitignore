@@ -38,3 +38,6 @@
 !/app/assets/builds/.keep
 
 *.DS_Store
+
+# SQLite DB files and write ahead log
+*.db*
