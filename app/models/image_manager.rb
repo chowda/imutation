@@ -22,9 +22,6 @@ class ImageManager
 
   def self.fetch_and_create_original!(url)
     tempfile = Down.download(url, max_size: 10 * 1024 * 1024)  # 10 MB
-    # TODO: ImageProcessing::Vips.valid_image?(normal_image)  #=> true
-    #       ImageProcessing::Vips.valid_image?(invalid_image) #=> false
-    #       Tries to calculate the image average using sequential access, and returns true if no exception was raised, otherwise returns false.
     im = Image.create!(url: url, format: tempfile.content_type, bin: tempfile.read)
     tempfile.unlink
 
@@ -61,9 +58,6 @@ class ImageManager
 
     mem_target = Vips::Target.new_to_memory
     vips_image.write_to_target(mem_target, original_image.format_to_extension)
-    # TODO: ImageProcessing::Vips.valid_image?(normal_image)  #=> true
-    #       ImageProcessing::Vips.valid_image?(invalid_image) #=> false
-    #       Tries to calculate the image average using sequential access, and returns true if no exception was raised, otherwise returns false.
     Image.create!(url: variant_url, format: original_image.format, bin: mem.get("blob"))
   end
 end
