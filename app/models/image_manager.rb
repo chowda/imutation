@@ -32,9 +32,7 @@ class ImageManager
   end
 
   def self.create_variant!(original_image, changes, variant_url)
-    tf = Tempfile.new([original_image.url, ".jpg"], encoding: 'ascii-8bit') # TODO: create tempfile with correct extension
-    tf.write(original_image.bin)
-    variant = ImageProcessing::Vips.source(tf.path) # TODO: Source should be a memory buffer - original_image.bin
+    variant = ImageProcessing::Vips.source(Vips::Image.new_from_buffer(original_image.bin, ""))
 
     # Apply transforms
     # TODO: Can I do them all with 1 apply? https://github.com/janko/image_processing/blob/master/doc/vips.md#apply
@@ -59,14 +57,13 @@ class ImageManager
       end
     end
     # End transforms
+    vips_image = variant.call(save: false)
 
-    variant_tf = variant.call
+    mem_target = Vips::Target.new_to_memory
+    vips_image.write_to_target(mem_target, original_image.format_to_extension)
     # TODO: ImageProcessing::Vips.valid_image?(normal_image)  #=> true
     #       ImageProcessing::Vips.valid_image?(invalid_image) #=> false
     #       Tries to calculate the image average using sequential access, and returns true if no exception was raised, otherwise returns false.
-    variant_image = Image.create!(url: variant_url, format: original_image.format, bin: variant_tf.read)
-    variant_tf.unlink
-
-    variant_image
+    Image.create!(url: variant_url, format: original_image.format, bin: mem.get("blob"))
   end
 end
