@@ -1,0 +1,23 @@
+<div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+  <h1 class='text-gray-500 dark:text-white text-center'>Logs (last <%= @logs.size %>)</h1>
+  <table class="w-full text-sm text-left text-gray-500 dark:text-gray-400">
+    <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
+      <tr>
+        <th scope="col" class="px-6 py-3">URL</th>
+        <th scope="col" class="px-6 py-3">Referer</th>
+        <th scope="col" class="px-6 py-3">Host</th>
+        <th scope="col" class="px-6 py-3">Requested At</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @logs.reverse.each_with_index do |log, i| %>
+      <tr class="bg-white border-b <%= i.even? ? 'bg-white bg-gray-50 dark:bg-gray-900' : 'dark:bg-gray-700' %>  dark:border-gray-700">
+        <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white"><%= log.url %></th>
+        <td class="px-6 py-4"><%= log.referer %></td>
+        <td class="px-6 py-4"><%= log.host %></td>
+        <td class="px-6 py-4"><%= log.requested_at %></td>
+      </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
