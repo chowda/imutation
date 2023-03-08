@@ -3,14 +3,16 @@ class ImagesController < ApplicationController
   after_action :log_request, only: [:show]
 
   def show
-    image = ImageManager.call(params[:url], permitted_params.except(:url))
-    if image.is_a? Image
+    begin
+      image = ImageManager.new(params[:url], permitted_params.except(:url)).call
       send_data(image.bin, type: image.format, disposition: 'inline')
-    elsif down_errors.include? image.class
-      down_error = image.to_s.split("::").last
-      render_error(down_error)
-    else
-      render_error("ERROR")
+    rescue => exception
+      if down_errors.include? exception.class
+        down_error = exception.to_s.split("::").last
+        render_error(down_error)
+      else
+        render_error("ERROR")
+      end
     end
   end
 

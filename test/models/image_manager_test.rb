@@ -3,7 +3,7 @@ require "test_helper"
 class ImageManagerTest < ActiveSupport::TestCase
   test "fetch existing record instead of remote" do
     image = Image.create!(url: "test")
-    assert_equal ImageManager.call("test", {}), image
+    assert_equal ImageManager.new("test", {}).call, image
   end
 
   test "fetch remote image if it doesn't exist in DB" do
@@ -15,7 +15,7 @@ class ImageManagerTest < ActiveSupport::TestCase
     tf.expect(:unlink, true)
 
     im = Down.stub(:download, tf) do
-      ImageManager.call("test", {})
+      ImageManager.new("test", {}).call
     end
 
     assert_equal Image.find_by(url: "test"), im

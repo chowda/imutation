@@ -1,39 +1,46 @@
 class ImageManager
-  def self.call(url, changes={})
-    if changes.any?
-      variant_url = url + "?" + changes.map{|k,v| "#{k}=#{v}" }.join("&")
+  attr_reader :url, :changes
+
+  def initialize(url, changes={})
+    @url = url
+    @changes = changes
+  end
+
+  def call
+    if @changes.any?
+      variant_url = @url + "?" + @changes.map{|k,v| "#{k}=#{v}" }.join("&")
       variant_image = Image.find_by(url: variant_url)
       unless variant_image
-        original_image = self.find_or_fetch_original!(url)
-        variant_image = self.create_variant!(original_image, changes, variant_url)
+        original_image = find_or_fetch_original!()
+        variant_image = create_variant!(original_image, variant_url)
       end
       variant_image
     else
-      self.find_or_fetch_original!(url)
+      find_or_fetch_original!()
     end
   end
 
   private
 
-  def self.find_or_fetch_original!(url)
-    original_url = url.split("?").first
-    Image.find_by(url: original_url) || self.fetch_and_create_original!(url)
+  def find_or_fetch_original!()
+    original_url = @url.split("?").first
+    Image.find_by(url: original_url) || fetch_and_create_original!()
   end
 
-  def self.fetch_and_create_original!(url)
-    tempfile = Down.download(url, max_size: 10 * 1024 * 1024)  # 10 MB
-    im = Image.create!(url: url, format: tempfile.content_type, bin: tempfile.read)
+  def fetch_and_create_original!()
+    tempfile = Down.download(@url, max_size: 10 * 1024 * 1024)  # 10 MB
+    im = Image.create!(url: @url, format: tempfile.content_type, bin: tempfile.read)
     tempfile.unlink
 
     im
   end
 
-  def self.create_variant!(original_image, changes, variant_url)
+  def create_variant!(original_image, variant_url)
     variant = ImageProcessing::Vips.source(Vips::Image.new_from_buffer(original_image.bin, ""))
 
     # Apply transforms
     # TODO: Can I do them all with 1 apply? https://github.com/janko/image_processing/blob/master/doc/vips.md#apply
-    changes.each do |cmd, value|
+    @changes.each do |cmd, value|
       case cmd
       when "resize_to_limit" # Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions.
         h, w = value.split(",")
@@ -58,6 +65,6 @@ class ImageManager
 
     mem_target = Vips::Target.new_to_memory
     vips_image.write_to_target(mem_target, original_image.format_to_extension)
-    Image.create!(url: variant_url, format: original_image.format, bin: mem.get("blob"))
+    Image.create!(url: variant_url, format: original_image.format, bin: mem_target.get("blob"))
   end
 end

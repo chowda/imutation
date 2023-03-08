@@ -16,10 +16,10 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "#show with legit image not already in DB" do
-    tf = Minitest::Mock.new()
-    tf.expect(:content_type, @media_type)
-    tf.expect(:read, @data)
-    tf.expect(:unlink, true)
+    tf = mock()
+    tf.expects(:content_type).returns(@media_type)
+    tf.expects(:read).returns(@data)
+    tf.expects(:unlink).returns(true)
 
     Down.stub(:download, tf) do
       get image_show_url, params: {url: @url}
@@ -33,16 +33,14 @@ class ImagesControllerTest < ActionDispatch::IntegrationTest
   end
 
   test "#show with TimeoutError exception thrown" do
-    ImageManager.stub(:call, Down::TimeoutError.new) do
-      get image_show_url, params: {url: @url}
-    end
+    Down.expects(:download).raises(Down::TimeoutError)
+    get image_show_url, params: {url: @url}
     assert_equal "TimeoutError", @response.body
   end
 
   test "#show with TooLarge exception thrown" do
-    ImageManager.stub(:call, Down::TooLarge.new) do
-      get image_show_url, params: {url: @url}
-    end
+    Down.expects(:download).raises(Down::TooLarge)
+    get image_show_url, params: {url: @url}
     assert_equal "TooLarge", @response.body
   end
 
