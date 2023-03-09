@@ -38,30 +38,29 @@ class ImageManager
   def create_variant!(original_image, variant_url)
     variant = ImageProcessing::Vips.source(Vips::Image.new_from_buffer(original_image.bin, ""))
 
-    # Apply transforms
-    # TODO: Can I do them all with 1 apply? https://github.com/janko/image_processing/blob/master/doc/vips.md#apply
+    # Build up transform changeset
+    changeset = {}
     @changes.each do |cmd, value|
       case cmd
       when "resize_to_limit" # Downsizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will only resize the image if it's larger than the specified dimensions.
         h, w = value.split(",")
-        variant = variant.resize_to_limit(h.to_i, w.to_i)
+        changeset[:resize_to_limit] = [h.to_i, w.to_i]
       when "resize_to_fit" # Resizes the image to fit within the specified dimensions while retaining the original aspect ratio. Will downsize the image if it's larger than the specified dimensions or upsize if it's smaller.
         h, w = value.split(",")
-        variant = variant.resize_to_fit(h.to_i, w.to_i)
+        changeset[:resize_to_fit] = [h.to_i, w.to_i]
       when "resize_to_fill" # Resizes the image to fill the specified dimensions while retaining the original aspect ratio. If necessary, will crop the image in the larger dimension.
         h, w = value.split(",")
-        variant = variant.resize_to_fill(h.to_i, w.to_i, crop: :attention) # smart crop
+        changeset[:resize_to_fill] = [h.to_i, w.to_i]
       when "crop" # Extracts an area from an image. The first two arguments are left & top edges of area to extract, while the last two arguments are the width & height of area to extract.
         l, t, w, h = value.split(",")
-        variant = variant.crop(l.to_i, t.to_i, w.to_i, h.to_i)
+        changeset[:crop] = [l.to_i, t.to_i, w.to_i, h.to_i]
       when "rotate" # Rotates the image by the specified angle.
-        variant = variant.rotate(value.to_i)
+        changeset[:rotate] = value.to_i
       when "quality"
-        variant = variant.saver(quality: value.to_i)
+        changeset[:saver] = {quality: value.to_i}
       end
     end
-    # End transforms
-    vips_image = variant.call(save: false)
+    vips_image = variant.apply(changeset).call(save: false)
 
     mem_target = Vips::Target.new_to_memory
     vips_image.write_to_target(mem_target, original_image.format_to_extension)
