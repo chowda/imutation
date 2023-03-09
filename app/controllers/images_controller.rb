@@ -4,7 +4,7 @@ class ImagesController < ApplicationController
 
   def show
     begin
-      image = ImageManager.new(params[:url], permitted_params.except(:url)).call
+      image = ImageManager.new(permitted_params).call
       send_data(image.bin, type: image.format, disposition: 'inline')
     rescue => exception
       if down_errors.include? exception.class
