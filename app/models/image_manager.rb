@@ -8,7 +8,7 @@ class ImageManager
 
   def call
     if @changes.any?
-      variant_url = @url + "?" + @changes.map{|k,v| "#{k}=#{v}" }.join("&")
+      variant_url = @url + "?" + @changes.sort.map{|k,v| "#{k}=#{v}" }.join("&")
       variant_image = Image.find_by(url: variant_url)
       unless variant_image
         original_image = find_or_fetch_original!()
