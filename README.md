@@ -3,6 +3,13 @@
 This app is a small proof of concept service for serving images and mutating images based on params sent from the client. How might be this helpful? Or rather - what is a good use case for this service?
 
 The new [picture](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/picture) element and srcset attribute help deal with adaptive images.  They allow multiple image urls to be specified on a single img or picutre tag.
+```
+<picture>
+  <source media="(max-width: 799px)" srcset="http://localhost:3000/i?url=https://i.imgur.com/2u4Ob9i.jpeg&resize_to_fill=480,480" />
+  <source media="(min-width: 800px)" srcset="http://localhost:3000/i?url=https://i.imgur.com/2u4Ob9i.jpeg&resize_to_fill=800,800" />
+  <img src="http://localhost:3000/i?url=https://i.imgur.com/2u4Ob9i.jpeg" alt="Squeeeee" />
+</picture>
+```
 
 It allows you to have a caching layer to your image assets without having to rely on external sources. You probably have a use case in mind. Give it a shot!
 
@@ -22,12 +29,12 @@ Try some test images:
 - http://localhost:3000/i?url=https://i.imgur.com/2u4Ob9i.jpeg&crop=50,250,500,520
 
 # Available mutations
-resize_to_limit
-resize_to_fit
-resize_to_fill
-crop
-rotate
-quality
+- resize_to_limit
+- resize_to_fit
+- resize_to_fill
+- crop
+- rotate
+- quality
 
 Also available at http://localhost:3000/i/help
 
